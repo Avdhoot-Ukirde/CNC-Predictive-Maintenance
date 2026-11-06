@@ -277,6 +277,19 @@ your actual recording. Do not copy the example sampling rate blindly.
 
 The Streamlit dashboard command will be added when dashboard/app.py is implemented.
 
+## First CWRU Recording Analysis
+
+The first normal-baseline recording (`100.mat`) has been inspected. A reusable command-line analysis script is available at [`scripts/analyze_cwru.py`](scripts/analyze_cwru.py). It generates a time-domain plot, FFT spectrum, overall feature summary, and window-level feature CSV.
+
+Run it after placing the file under `data/raw/cwru/`:
+
+```bash
+python scripts/analyze_cwru.py data/raw/cwru/100.mat \
+  --signal-key X100_DE_time --sampling-rate 12000
+```
+
+The sampling rate must be verified for the selected recording; do not reuse 12,000 Hz blindly for other CWRU files. See [the recorded analysis and metadata](docs/dataset_100_analysis.md) for the first file's channel, RPM, baseline condition, and measured features. The source `.mat` file is not committed to GitHub.
+
 ## Development Roadmap
 
 - [x] **Milestone 1 foundation — Reusable data and signal modules:** implement MATLAB/CSV loading, channel discovery, validation, windowing, time/frequency features, and unit tests. Actual CWRU file selection and dataset exploration remain to be completed once the dataset is downloaded.
