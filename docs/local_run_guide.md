@@ -58,3 +58,15 @@ Upload a `.mat` or `.csv` vibration recording, set the correct sampling frequenc
 - The model is a laboratory bearing-fault benchmark, not a validated CNC machine failure predictor.
 - No Remaining Useful Life (RUL) estimate is implemented.
 - Do not connect this research software to machine safety or motion-control circuits.
+
+## 8. Train and use the anomaly detector
+
+Train the normal-only baseline:
+
+    python scripts/train_anomaly_detector.py
+
+Apply it to a recording:
+
+    python scripts/detect_anomalies.py data/raw/cwru/108.mat --sampling-rate 12000
+
+The model is fitted only on normal recordings. An anomaly is a window that differs from the learned baseline; it is not a fault classification. Review anomaly scores and validate false alarms on separate data.
