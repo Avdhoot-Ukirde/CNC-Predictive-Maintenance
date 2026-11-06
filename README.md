@@ -142,6 +142,18 @@ The project will evaluate models in stages rather than assuming one model is bes
 - Record dataset selection, preprocessing choices, random seeds, model parameters, and evaluation results.
 - Do not claim that a model predicts a real machine failure unless it has been tested against representative machine data.
 
+## Bearing Fault Classifier — Implemented, Awaiting Full Dataset Run
+
+A four-class Random Forest training script is available at [`scripts/train_bearing_classifier.py`](scripts/train_bearing_classifier.py). It extracts features from the classic CWRU 12 kHz drive-end recordings and uses a recording-grouped train/test split to keep windows from the same source file together.
+
+See [the classifier dataset and evaluation guide](docs/bearing_classifier.md) for the exact 16-file manifest and run instructions.
+
+```bash
+python scripts/train_bearing_classifier.py
+```
+
+The script requires the 16 CWRU `.mat` files listed in that guide under `data/raw/cwru/`. It writes the trained model, feature table, metrics, and confusion matrix to `reports/classifier/`. **No model accuracy is claimed yet:** the complete dataset has not been run in this environment. CWRU test-rig performance is not equivalent to validated industrial CNC spindle performance.
+
 ## Dashboard — Planned Features
 
 A Streamlit interface is planned to make analysis accessible without opening a notebook.
