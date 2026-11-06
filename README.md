@@ -12,7 +12,7 @@ Unexpected spindle or bearing failures can interrupt CNC operations, affect part
 
 The initial development uses the **Case Western Reserve University (CWRU) Bearing Data Center dataset** to build and validate a vibration-analysis and bearing-fault-detection workflow. The longer-term goal is to extend the pipeline to live sensor acquisition from a CNC machine and provide a real-time monitoring dashboard.
 
-**Project status:** The initial offline signal-processing foundation is implemented: CWRU-style MATLAB/CSV loading, signal validation, fixed-window segmentation, time/frequency feature extraction, and automated tests. Dataset-specific exploration, trained models, measured accuracy, live hardware monitoring, and RUL estimates are not implemented yet.
+**Project status:** The offline analysis pipeline, feature extraction, CWRU four-class classifier training script, reusable inference module, command-line prediction tool, Streamlit dashboard, documentation, and automated tests are implemented. The model still needs to be trained locally using the full dataset. Live hardware monitoring and RUL estimation are not implemented.
 
 ## Problem Statement
 
@@ -184,30 +184,34 @@ The exact dependencies will be maintained in `requirements.txt` as implementatio
 
 ## Repository Structure
 
-The current implemented foundation is shown below. Planned components are marked as future work.
+The current implemented software structure is shown below. Generated model/report files and raw dataset files are created locally and are not committed.
 
 ```text
 CNC-Predictive-Maintenance/
-├── README.md
-├── requirements.txt
-├── .gitignore
-├── data/
-│   ├── README.md
-│   ├── raw/
-│   └── processed/
+├── .github/workflows/tests.yml
+├── .streamlit/config.toml
+├── dashboard/app.py
+├── data/ (raw and processed data folders)
+├── docs/
+│   ├── bearing_classifier.md
+│   ├── dataset_100_analysis.md
+│   ├── local_run_guide.md
+│   └── system_architecture.md
+├── scripts/
+│   ├── analyze_cwru.py
+│   ├── predict_bearing.py
+│   └── train_bearing_classifier.py
 ├── src/
-│   ├── __init__.py
 │   ├── data_loader.py
-│   ├── preprocessing.py
-│   └── feature_extraction.py
+│   ├── feature_extraction.py
+│   ├── inference.py
+│   └── preprocessing.py
 ├── tests/
-│   ├── test_data_loader.py
-│   └── test_signal_pipeline.py
-├── models/
-└── docs/
-    └── system_architecture.md
+├── models/ (reserved for future model files)
+├── requirements.txt
+└── README.md
 
-Future: notebooks/, dashboard/, anomaly_detection.py, fault_classifier.py
+Local generated outputs: reports/cwru_analysis/, reports/classifier/, reports/predictions/
 ```
 
 ## Getting Started
@@ -287,7 +291,7 @@ print(features[0])
 Replace the example channel and sampling rate with the values documented for
 your actual recording. Do not copy the example sampling rate blindly.
 
-The Streamlit dashboard command will be added when dashboard/app.py is implemented.
+Launch the dashboard after installing dependencies with `streamlit run dashboard/app.py`. If the classifier has not been trained yet, the dashboard still provides signal and feature analysis; model predictions become available after training.
 
 ## First CWRU Recording Analysis
 
@@ -305,11 +309,11 @@ The sampling rate must be verified for the selected recording; do not reuse 12,0
 ## Development Roadmap
 
 - [x] **Milestone 1 foundation — Reusable data and signal modules:** implement MATLAB/CSV loading, channel discovery, validation, windowing, time/frequency features, and unit tests. Actual CWRU file selection and dataset exploration remain to be completed once the dataset is downloaded.
-- [ ] **Milestone 2 — Dataset exploration and signal review:** select CWRU recordings, document labels and metadata, inspect real signals, and confirm channel sampling rates.
-- [ ] **Milestone 3 — Feature dataset:** build a reproducible feature-extraction pipeline and save labelled feature tables.
-- [ ] **Milestone 4 — Fault classification:** train baseline models and evaluate with recording-aware data splits.
+- [x] **Milestone 2 — Dataset analysis tooling:** add a reusable CWRU recording analysis script and document the first normal baseline.
+- [x] **Milestone 3 — Feature dataset pipeline:** build the labelled feature extraction workflow in the classifier trainer.
+- [x] **Milestone 4 — Fault classification implementation:** add Random Forest training and recording-grouped evaluation code. Actual training and metrics remain pending the local dataset run.
 - [ ] **Milestone 5 — Anomaly detection:** establish a normal-condition baseline and evaluate anomaly alerts.
-- [ ] **Milestone 6 — Dashboard:** display signals, spectra, extracted features, model outputs, and alert history.
+- [x] **Milestone 6 — Dashboard:** implement upload, signal plots, feature trends, and optional trained-model predictions.
 - [ ] **Milestone 7 — Streaming prototype:** replay recorded signals as a simulated stream and process incoming windows.
 - [ ] **Milestone 8 — Hardware integration:** investigate accelerometer, current sensor, RPM acquisition, sampling, and safe CNC integration.
 - [ ] **Milestone 9 — RUL research:** assess appropriate run-to-failure data and validate a separate RUL approach.
