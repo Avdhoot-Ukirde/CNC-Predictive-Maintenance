@@ -209,7 +209,9 @@ CNC-Predictive-Maintenance/
 │   └── system_architecture.md
 ├── scripts/
 │   ├── analyze_cwru.py
+│   ├── detect_anomalies.py
 │   ├── predict_bearing.py
+│   ├── train_anomaly_detector.py
 │   └── train_bearing_classifier.py
 ├── src/
 │   ├── data_loader.py
