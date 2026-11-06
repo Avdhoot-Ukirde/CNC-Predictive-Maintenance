@@ -165,18 +165,17 @@ python scripts/detect_anomalies.py data/raw/cwru/108.mat --sampling-rate 12000
 
 The anomaly model and per-window results are saved under `reports/anomaly/`. Evaluate false alarms and missed detections before interpreting alerts; this benchmark is not a validated industrial alarm system.
 
-## Dashboard — Implemented
+## Streamlit Dashboard — Implemented
 
-A Streamlit interface is planned to make analysis accessible without opening a notebook.
+Launch the offline dashboard from the repository root:
 
-- **Machine condition:** predicted class or anomaly status for the selected data window.
-- **Vibration overview:** raw signal and FFT spectrum plots.
-- **Feature monitoring:** RMS, kurtosis, peak amplitude, and other extracted features.
-- **History:** feature values and model outputs over successive windows.
-- **Alerts:** configurable warning thresholds and anomaly notifications.
-- **Data upload:** load a supported CSV or dataset file for analysis.
+```bash
+streamlit run dashboard/app.py
+```
 
-Dashboard status indicators will be model outputs, not safety-certified machine controls. An alert should prompt inspection; it must not automatically stop or control industrial equipment.
+The dashboard accepts `.mat` and numeric `.csv` recordings, supports channel/column selection, and displays signal statistics, a time-domain trace, an FFT spectrum, extracted features, and window-level feature trends. Once the classifier has been trained, it also displays predicted bearing conditions and allows predictions to be downloaded as CSV.
+
+The dashboard does not acquire live CNC telemetry. Status indicators are model outputs, not safety-certified machine controls. They must not automatically stop or control industrial equipment.
 
 ## Technology Stack
 
