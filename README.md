@@ -12,7 +12,7 @@ Unexpected spindle or bearing failures can interrupt CNC operations, affect part
 
 The initial development uses the **Case Western Reserve University (CWRU) Bearing Data Center dataset** to build and validate a vibration-analysis and bearing-fault-detection workflow. The longer-term goal is to extend the pipeline to live sensor acquisition from a CNC machine and provide a real-time monitoring dashboard.
 
-**Project status:** This repository is the project starting point. The architecture and milestones below describe the intended implementation; live hardware monitoring, trained models, measured accuracy, and remaining-useful-life estimates should not be considered available until their implementation and validation are documented here.
+**Project status:** The initial offline signal-processing foundation is implemented: CWRU-style MATLAB/CSV loading, signal validation, fixed-window segmentation, time/frequency feature extraction, and automated tests. Dataset-specific exploration, trained models, measured accuracy, live hardware monitoring, and RUL estimates are not implemented yet.
 
 ## Problem Statement
 
@@ -172,7 +172,7 @@ The exact dependencies will be maintained in `requirements.txt` as implementatio
 
 ## Repository Structure
 
-The following is the intended structure. Files will be added as each development milestone is implemented.
+The current implemented foundation is shown below. Planned components are marked as future work.
 
 ```text
 CNC-Predictive-Maintenance/
@@ -180,23 +180,22 @@ CNC-Predictive-Maintenance/
 ├── requirements.txt
 ├── .gitignore
 ├── data/
-│   └── README.md
-├── notebooks/
-│   ├── 01_data_exploration.ipynb
-│   ├── 02_signal_processing.ipynb
-│   └── 03_model_training.ipynb
+│   ├── README.md
+│   ├── raw/
+│   └── processed/
 ├── src/
+│   ├── __init__.py
 │   ├── data_loader.py
 │   ├── preprocessing.py
-│   ├── feature_extraction.py
-│   ├── anomaly_detection.py
-│   └── fault_classifier.py
-├── models/
-├── dashboard/
-│   └── app.py
+│   └── feature_extraction.py
 ├── tests/
+│   ├── test_data_loader.py
+│   └── test_signal_pipeline.py
+├── models/
 └── docs/
     └── system_architecture.md
+
+Future: notebooks/, dashboard/, anomaly_detection.py, fault_classifier.py
 ```
 
 ## Getting Started
@@ -233,7 +232,7 @@ source .venv/bin/activate
 
 ### 3. Install dependencies
 
-Once `requirements.txt` has been populated:
+Install the project dependencies:
 
 ```bash
 python -m pip install --upgrade pip
@@ -246,18 +245,42 @@ Download the required CWRU files from the [official Bearing Data Center](https:/
 
 Dataset files are intentionally not committed to this repository by default. This keeps the repository lightweight and avoids redistributing third-party data without checking its terms.
 
-### 5. Run the application
+### 5. Run the automated tests
 
-The dashboard command will be added when `dashboard/app.py` is implemented. The intended launch command is:
+From the repository root:
 
 ```bash
-streamlit run dashboard/app.py
+python -m pytest -q
 ```
+
+### 6. Use the signal-processing modules
+
+The loader supports CWRU-style MATLAB files and CSV files. For a MATLAB file
+with multiple vibration channels, inspect the available channel names and
+select one explicitly:
+
+```python
+from src.data_loader import discover_mat_signals, load_cwru_signal
+from src.preprocessing import segment_signal
+from src.feature_extraction import extract_feature_rows
+
+path = "data/raw/cwru/your_recording.mat"
+print(discover_mat_signals(path))
+signal = load_cwru_signal(path, signal_key="X097_DE_time")
+windows = segment_signal(signal, window_size=2048, overlap=0.5)
+features = extract_feature_rows(windows, sampling_rate=12000)
+print(features[0])
+```
+
+Replace the example channel and sampling rate with the values documented for
+your actual recording. Do not copy the example sampling rate blindly.
+
+The Streamlit dashboard command will be added when dashboard/app.py is implemented.
 
 ## Development Roadmap
 
-- [ ] **Milestone 1 — Dataset exploration:** select CWRU recordings, document labels and metadata, inspect signals.
-- [ ] **Milestone 2 — Signal processing:** implement windowing, RMS, kurtosis, crest factor, and FFT analysis.
+- [x] **Milestone 1 foundation — Reusable data and signal modules:** implement MATLAB/CSV loading, channel discovery, validation, windowing, time/frequency features, and unit tests. Actual CWRU file selection and dataset exploration remain to be completed once the dataset is downloaded.
+- [ ] **Milestone 2 — Dataset exploration and signal review:** select CWRU recordings, document labels and metadata, inspect real signals, and confirm channel sampling rates.
 - [ ] **Milestone 3 — Feature dataset:** build a reproducible feature-extraction pipeline and save labelled feature tables.
 - [ ] **Milestone 4 — Fault classification:** train baseline models and evaluate with recording-aware data splits.
 - [ ] **Milestone 5 — Anomaly detection:** establish a normal-condition baseline and evaluate anomaly alerts.
