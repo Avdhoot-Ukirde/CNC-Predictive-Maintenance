@@ -154,7 +154,18 @@ python scripts/train_bearing_classifier.py
 
 The script requires the 16 CWRU `.mat` files listed in that guide under `data/raw/cwru/`. It writes the trained model, feature table, metrics, and confusion matrix to `reports/classifier/`. **No model accuracy is claimed yet:** the complete dataset has not been run in this environment. CWRU test-rig performance is not equivalent to validated industrial CNC spindle performance.
 
-## Dashboard — Planned Features
+### Normal-baseline anomaly detector
+
+A separate Isolation Forest workflow is also implemented. It is trained only on the four normal CWRU recordings and flags windows that differ from that baseline. It does not identify a specific fault type. Run:
+
+```bash
+python scripts/train_anomaly_detector.py
+python scripts/detect_anomalies.py data/raw/cwru/108.mat --sampling-rate 12000
+```
+
+The anomaly model and per-window results are saved under `reports/anomaly/`. Evaluate false alarms and missed detections before interpreting alerts; this benchmark is not a validated industrial alarm system.
+
+## Dashboard — Implemented
 
 A Streamlit interface is planned to make analysis accessible without opening a notebook.
 
@@ -211,7 +222,7 @@ CNC-Predictive-Maintenance/
 ├── requirements.txt
 └── README.md
 
-Local generated outputs: reports/cwru_analysis/, reports/classifier/, reports/predictions/
+Local generated outputs: reports/cwru_analysis/, reports/classifier/, reports/anomaly/, reports/predictions/
 ```
 
 ## Getting Started
@@ -312,7 +323,7 @@ The sampling rate must be verified for the selected recording; do not reuse 12,0
 - [x] **Milestone 2 — Dataset analysis tooling:** add a reusable CWRU recording analysis script and document the first normal baseline.
 - [x] **Milestone 3 — Feature dataset pipeline:** build the labelled feature extraction workflow in the classifier trainer.
 - [x] **Milestone 4 — Fault classification implementation:** add Random Forest training and recording-grouped evaluation code. Actual training and metrics remain pending the local dataset run.
-- [ ] **Milestone 5 — Anomaly detection:** establish a normal-condition baseline and evaluate anomaly alerts.
+- [x] **Milestone 5 — Anomaly detection implementation:** add normal-only Isolation Forest training and window-level anomaly inference. Validation against representative held-out machine data remains pending.
 - [x] **Milestone 6 — Dashboard:** implement upload, signal plots, feature trends, and optional trained-model predictions.
 - [ ] **Milestone 7 — Streaming prototype:** replay recorded signals as a simulated stream and process incoming windows.
 - [ ] **Milestone 8 — Hardware integration:** investigate accelerometer, current sensor, RPM acquisition, sampling, and safe CNC integration.
