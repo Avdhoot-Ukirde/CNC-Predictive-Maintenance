@@ -177,6 +177,96 @@ The dashboard accepts `.mat` and numeric `.csv` recordings, supports channel/col
 
 The dashboard does not acquire live CNC telemetry. Status indicators are model outputs, not safety-certified machine controls. They must not automatically stop or control industrial equipment.
 
+## MLOps Upgrade — Model Tracking, Versioning & API
+
+The repository now includes an MLOps extension around the existing CWRU workflow. The extension is designed to use the real model and evaluation output produced by the training script; it does not insert mock predictions or fabricated metrics.
+
+### MLflow experiment tracking
+
+The classifier trainer logs the actual grouped-holdout run to the `cnc_bearing_fault_detection` experiment. Logged information includes model and preprocessing parameters, accuracy, per-class precision/recall/F1, the evaluation JSON, confusion-matrix image, serialized model bundle, and Scikit-learn model artifact.
+
+Run training after downloading all 16 dataset files:
+
+```bash
+python scripts/train_bearing_classifier.py
+```
+
+By default, MLflow uses a local SQLite tracking database (`mlflow.db`). Launch its UI in another terminal:
+
+```bash
+mlflow ui --backend-store-uri sqlite:///mlflow.db --host 127.0.0.1 --port 5000
+```
+
+Open http://127.0.0.1:5000. To log to a tracking server instead, set `MLFLOW_TRACKING_URI` before running the training script. For example, when the Compose MLflow service is running, set it to `http://localhost:5000`.
+
+### DVC data and pipeline versioning
+
+DVC is configured with a training stage in `dvc.yaml`. To version the downloaded dataset locally and run the reproducible stage:
+
+```bash
+dvc init
+dvc add data/raw/cwru
+git add data/raw/cwru.dvc .gitignore dvc.yaml
+git commit -m "Track CWRU dataset with DVC"
+dvc repro
+```
+
+The raw dataset is not committed to Git. Configure a DVC remote (for example, an S3-compatible remote) before expecting dataset artifacts to be shared with another machine. Do not upload the dataset unless its terms permit redistribution.
+
+### FastAPI prediction service
+
+The API accepts raw vibration samples, extracts features using the same inference pipeline as the dashboard, and returns a predicted condition for each complete window. It requires a trained model bundle at `reports/classifier/bearing_random_forest.joblib`.
+
+Start locally:
+
+```bash
+uvicorn api.main:app --reload
+```
+
+- Health: http://127.0.0.1:8000/health
+- Interactive API docs: http://127.0.0.1:8000/docs
+- Prediction: `POST /predict` with `signal`, verified `sampling_rate_hz`, and optional `window_size` / `overlap`.
+
+Example request body (illustrative signal values only):
+
+```json
+{
+  "signal": [0.12, -0.08, 0.21, -0.16, 0.09, -0.03, 0.18, -0.11],
+  "sampling_rate_hz": 12000,
+  "window_size": 8,
+  "overlap": 0.5
+}
+```
+
+For meaningful predictions, send enough samples for one or more full windows and use the actual sampling frequency for that recording. The API returns HTTP 503 until the model has been trained and the bundle is available.
+
+### Docker Compose
+
+After training the classifier locally, run:
+
+```bash
+docker compose up --build
+```
+
+The API is exposed on port 8000 and the MLflow tracking UI on port 5000. The trained classifier directory is mounted read-only into the API container. If no model has been trained, the API health endpoint reports `model_not_trained` and predictions return HTTP 503.
+
+### Environment variables
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `MLFLOW_TRACKING_URI` | `sqlite:///mlflow.db` | MLflow tracking backend used by training |
+| `MODEL_PATH` | `reports/classifier/bearing_random_forest.joblib` | Model bundle loaded by the API |
+
+### Automated tests
+
+Run all tests with:
+
+```bash
+python -m pytest -q
+```
+
+GitHub Actions runs the test suite on pushes and pull requests. CI validates software behaviour; it does not download the CWRU dataset or claim model accuracy.
+
 ## Technology Stack
 
 | Area | Planned tools |
