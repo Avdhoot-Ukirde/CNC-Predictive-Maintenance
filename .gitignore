@@ -29,3 +29,10 @@ models/*
 
 reports/*
 !reports/.gitkeep
+
+# Local MLOps state and caches
+mlflow.db
+mlruns/
+mlartifacts/
+.dvc/cache/
+*.sqlite
