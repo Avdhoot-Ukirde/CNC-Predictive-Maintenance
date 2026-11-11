@@ -24,5 +24,15 @@ services:
       - mlflow-data:/mlflow
     restart: unless-stopped
 
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./reports/classifier:/app/reports/classifier:ro
+    restart: unless-stopped
+
 volumes:
   mlflow-data:
