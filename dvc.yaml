@@ -1,0 +1,14 @@
+stages:
+  train_bearing_classifier:
+    cmd: python scripts/train_bearing_classifier.py
+    deps:
+      - scripts/train_bearing_classifier.py
+      - src/data_loader.py
+      - src/feature_extraction.py
+      - src/preprocessing.py
+      - data/raw/cwru
+    outs:
+      - reports/classifier/feature_dataset.csv
+      - reports/classifier/bearing_random_forest.joblib
+      - reports/classifier/metrics.json
+      - reports/classifier/confusion_matrix.png
