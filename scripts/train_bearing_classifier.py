@@ -68,7 +68,8 @@ def build_feature_table(
             continue
 
         # Files in this manifest contain a single DE vibration channel.
-        signal = load_cwru_signal(path)
+        signal_key = f"X{int(path.stem):03d}_DE_time"
+        signal = load_cwru_signal(path, signal_key=signal_key)
         windows = segment_signal(signal, window_size, overlap)
         features = extract_feature_rows(windows, sampling_rate)
 
@@ -229,7 +230,11 @@ def main() -> None:
         mlflow.log_dict(summary, "evaluation/metrics.json")
         mlflow.log_artifact(str(confusion_path), artifact_path="evaluation")
         mlflow.log_artifact(str(args.output_dir / "bearing_random_forest.joblib"), artifact_path="model_bundle")
-        mlflow.sklearn.log_model(model, artifact_path="sklearn_model")
+        mlflow.sklearn.log_model(
+          model,
+          name="sklearn_model",
+          skops_trusted_types=["sklearn.tree._tree.Tree"],
+        )
 
     print(json.dumps({
         "accuracy": summary["accuracy"],

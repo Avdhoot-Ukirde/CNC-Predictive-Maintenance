@@ -1,0 +1,43 @@
+schema: '2.0'
+stages:
+  train_bearing_classifier:
+    cmd: python scripts/train_bearing_classifier.py
+    deps:
+    - path: data/raw/cwru
+      hash: md5
+      md5: 28da09e189f751ae73df08b9535513e5.dir
+      size: 70056712
+      nfiles: 16
+    - path: scripts/train_bearing_classifier.py
+      hash: md5
+      md5: 131ac453e95805a6fbe660b39b88d239
+      size: 9897
+    - path: src/data_loader.py
+      hash: md5
+      md5: 36542960fd12887fc20b595aaf72294e
+      size: 4128
+    - path: src/feature_extraction.py
+      hash: md5
+      md5: 2d0f1ab9b7648b9d0dfde7b1cdf56d36
+      size: 2701
+    - path: src/preprocessing.py
+      hash: md5
+      md5: 0d6541575c30897bed7d89e1bb878718
+      size: 1551
+    outs:
+    - path: reports/classifier/bearing_random_forest.joblib
+      hash: md5
+      md5: e180c1d984ada2547ee2272dc30d233f
+      size: 348970
+    - path: reports/classifier/confusion_matrix.png
+      hash: md5
+      md5: 093ad0bdec1ee75ddfb9d1e9ddd2082a
+      size: 48359
+    - path: reports/classifier/feature_dataset.csv
+      hash: md5
+      md5: 1fe1c5808a69fed7d114d06b2c01678e
+      size: 685863
+    - path: reports/classifier/metrics.json
+      hash: md5
+      md5: b0ba89ce7b36d86532f000aa6778e50f
+      size: 2082
