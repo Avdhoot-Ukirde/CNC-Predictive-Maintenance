@@ -14,11 +14,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
 import joblib
 import matplotlib.pyplot as plt
+import mlflow
+import mlflow.sklearn
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import (
@@ -191,8 +194,42 @@ def main() -> None:
     display.plot(cmap="Blues", values_format="d", xticks_rotation=25)
     plt.title("CWRU bearing condition — held-out recording test")
     plt.tight_layout()
-    plt.savefig(args.output_dir / "confusion_matrix.png", dpi=160)
+    confusion_path = args.output_dir / "confusion_matrix.png"
+    plt.savefig(confusion_path, dpi=160)
     plt.close()
+
+    # Track the real holdout evaluation and fitted model; no placeholder metrics.
+    tracking_uri = os.getenv("MLFLOW_TRACKING_URI", "sqlite:///mlflow.db")
+    mlflow.set_tracking_uri(tracking_uri)
+    mlflow.set_experiment("cnc_bearing_fault_detection")
+    with mlflow.start_run(run_name="cwru_random_forest"):
+        mlflow.set_tags({
+            "dataset": "CWRU 12 kHz drive-end",
+            "validation": "recording_grouped_holdout",
+            "task": "four_class_bearing_condition_classification",
+        })
+        mlflow.log_params({
+            "model": "RandomForestClassifier",
+            "n_estimators": 300,
+            "class_weight": "balanced",
+            "random_state": args.random_state,
+            "sampling_rate_hz": args.sampling_rate,
+            "window_size": args.window_size,
+            "overlap": args.overlap,
+            "recording_count": int(groups.nunique()),
+            "train_recording_count": len(train_files),
+            "test_recording_count": len(test_files),
+        })
+        mlflow.log_metric("accuracy", summary["accuracy"])
+        for class_name in CLASS_NAMES:
+            class_metrics = report.get(class_name, {})
+            for metric_name in ("precision", "recall", "f1-score"):
+                if metric_name in class_metrics:
+                    mlflow.log_metric(f"{class_name}_{metric_name.replace('-', '_')}", float(class_metrics[metric_name]))
+        mlflow.log_dict(summary, "evaluation/metrics.json")
+        mlflow.log_artifact(str(confusion_path), artifact_path="evaluation")
+        mlflow.log_artifact(str(args.output_dir / "bearing_random_forest.joblib"), artifact_path="model_bundle")
+        mlflow.sklearn.log_model(model, artifact_path="sklearn_model")
 
     print(json.dumps({
         "accuracy": summary["accuracy"],
