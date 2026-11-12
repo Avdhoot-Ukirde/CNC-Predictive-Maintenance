@@ -9,7 +9,7 @@ pytest>=8.0
 jupyter>=1.0
 
 # MLOps and model-serving dependencies
-mlflow>=2.10,<4
+mlflow>=3.0,<4
 dvc>=3.50,<4
 fastapi>=0.110,<1
 uvicorn[standard]>=0.27,<1
