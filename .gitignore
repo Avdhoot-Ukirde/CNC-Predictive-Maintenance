@@ -15,6 +15,7 @@ htmlcov/
 .vscode/
 .idea/
 data/raw/*
+!data/raw/*.dvc
 !data/raw/.gitkeep
 data/processed/*
 !data/processed/.gitkeep
@@ -29,3 +30,10 @@ models/*
 
 reports/*
 !reports/.gitkeep
+
+# Local MLOps state and caches
+mlflow.db
+mlruns/
+mlartifacts/
+.dvc/cache/
+*.sqlite

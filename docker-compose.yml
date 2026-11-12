@@ -1,0 +1,38 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      MODEL_PATH: /app/reports/classifier/bearing_random_forest.joblib
+    volumes:
+      - ./reports/classifier:/app/reports/classifier:ro
+    depends_on:
+      - mlflow
+    restart: unless-stopped
+
+  mlflow:
+    image: python:3.11-slim
+    working_dir: /mlflow
+    command: >
+      sh -c "pip install --no-cache-dir 'mlflow>=3.0,<4' &&
+      mlflow server --backend-store-uri sqlite:////mlflow/mlflow.db
+      --default-artifact-root /mlflow/artifacts --host 0.0.0.0 --port 5000"
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow-data:/mlflow
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./reports/classifier:/app/reports/classifier:ro
+    restart: unless-stopped
+
+volumes:
+  mlflow-data:

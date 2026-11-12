@@ -69,6 +69,16 @@ Overlapping windows from the same source recording are highly related. A random 
 
 Even with recording-level separation, this remains a small benchmark from one laboratory test rig. It does not prove generalization to a CNC spindle, other bearing types, sensor mountings, speeds, or loads. Do not advertise the accuracy as industrial fault-detection performance.
 
-## Current status
+## Evaluation result and current status
 
-The classifier implementation is committed, but no model has been trained yet because the complete 16-file dataset has not been supplied to the project runtime. Run the command locally after downloading the data to produce genuine metrics. Never report an expected or invented accuracy as an experimental result.
+The repository README records a completed grouped-holdout evaluation with **100% accuracy on 825 held-out windows** for the current CWRU benchmark. This result is produced by the training workflow above, which uses `StratifiedGroupKFold` and keeps each source recording entirely within either the training or test split.
+
+The reported score is specific to this dataset subset, feature pipeline, model configuration, and selected grouped split. The 825 windows are not 825 independent machine recordings: windows are segmented from a small number of CWRU recordings, with 50% overlap between adjacent windows. This result must not be interpreted as industrial CNC accuracy or evidence of generalization to other machines, bearing types, sensor installations, speeds, or loads.
+
+The training script writes the actual evaluation details to `reports/classifier/metrics.json`, including the accuracy, train/test recording lists, window counts, and per-class metrics. It also writes the fitted model, feature dataset, and confusion matrix. These generated files are local/DVC-managed artifacts rather than a committed metrics report in this Git documentation. To reproduce the evaluation, obtain all 16 recordings listed above and run:
+
+```bash
+python scripts/train_bearing_classifier.py
+```
+
+The script will fail explicitly if any required recording is missing. Do not substitute an expected score for a newly generated result, and retain the limitations above whenever quoting the reported 100% benchmark score.

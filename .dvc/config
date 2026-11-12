@@ -1,0 +1,6 @@
+[core]
+    remote = cnc-s3
+['remote "cnc-s3"']
+    url = s3://cnc-router-maintainance-838675674393-ap-southeast-2-an
+    profile = cnc-dvc
+    region = ap-southeast-2
